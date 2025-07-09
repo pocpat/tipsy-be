@@ -3,7 +3,7 @@ import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 
 export default async function Header() {
-  const { userId } = await auth();
+  const { userId } = auth();
 
   return (
     <header className="flex items-center justify-between px-4 py-2 bg-gray-100">
@@ -14,7 +14,7 @@ export default async function Header() {
       </div>
       <div>
         {userId ? (
-          <UserButton afterSignOutUrl="/" />
+          <UserButton />
         ) : (
           <Link href="/sign-in" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
             Sign In
