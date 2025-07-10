@@ -1,24 +1,37 @@
+
 import { auth } from "@clerk/nextjs/server";
-import Link from "next/link";
 
 export default async function Home() {
-  const { userId } = auth();
+  // We still check for the user ID to provide a useful debug status.
+  const { userId } =  await auth();
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
+    <main style={{ fontFamily: 'monospace', padding: '2rem' }}>
+      <header style={{ borderBottom: '1px solid #ccc', paddingBottom: '1rem' }}>
+        <h1>Tipsy Backend API</h1>
+        <p>Status: ✅ Online</p>
+      </header>
+
+      <section style={{ marginTop: '2rem' }}>
+        <h2>Purpose</h2>
+        <p>
+          This is the backend server for the Tipsy Nail Art mobile app.
+          It provides API endpoints under the <code>/api</code> route.
+        </p>
+      </section>
+
+      <section style={{ marginTop: '2rem' }}>
+        <h2>Authentication Status</h2>
         {userId ? (
-          <div>
-            <p>Welcome, user!</p>
-            <Link href="/dashboard">Go to Dashboard</Link>
-          </div>
+          <p style={{ color: 'green' }}>
+            ✅ A user is currently signed in. (UserID: {userId})
+          </p>
         ) : (
-          <div>
-            <p>Please sign in to continue.</p>
-            <Link href="/sign-in">Sign In</Link>
-          </div>
+          <p style={{ color: 'orange' }}>
+            ℹ️ No user is currently signed in. API routes are protected.
+          </p>
         )}
-      </div>
+      </section>
     </main>
   );
 }

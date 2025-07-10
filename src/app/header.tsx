@@ -3,8 +3,7 @@ import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 
 export default async function Header() {
-  const { userId } = auth();
-
+ const { userId } = await auth();
   return (
     <header className="flex items-center justify-between px-4 py-2 bg-gray-100">
       <div className="flex items-center space-x-4">
