@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.24.0",
+    "@vercel/blob": "^1.1.1",
     "mongoose": "^8.16.2",
     "next": "^15.3.5",
     "react": "^18",

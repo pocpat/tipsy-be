@@ -1,36 +1,61 @@
-import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-import dbConnect from "../../../../lib/db";
-import Design from "../../../../models/DesignModel";
-import { checkAndIncrementTotalStorage } from '@/utils/rateLimiter';
+import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+import { put } from '@vercel/blob';
+import Design from '@/models/DesignModel';
+import { checkStorageLimit } from '@/utils/rateLimiter';
+import dbConnect from '@/lib/db';
 
 export async function POST(request: Request) {
   try {
-    const { userId } = await auth();
-
+    const { userId } = auth();
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Check total storage limit
-    if (!checkAndIncrementTotalStorage(userId)) {
-      return new NextResponse("Total storage limit exceeded.", { status: 429 });
+    const body = await request.json();
+    const { imageUrl, shape, length, style, colors } = body;
+
+    if (!imageUrl) {
+      return new NextResponse('Image URL is required', { status: 400 });
     }
+
+    const { limitReached, message } = await checkStorageLimit(userId);
+    if (limitReached) {
+      return new NextResponse(message, { status: 429 });
+    }
+
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    }
+    const imageBuffer = await response.arrayBuffer();
+
+    const blob = await put(
+      `designs/${userId}/${Date.now()}.png`,
+      imageBuffer,
+      {
+        access: 'public',
+        contentType: 'image/png',
+      }
+    );
 
     await dbConnect();
 
-    const designData = await request.json();
-
     const newDesign = new Design({
       userId,
-      ...designData,
+      shape,
+      length,
+      style,
+      colors,
+      modelResults: [blob.url], // Save the permanent URL
+      createdAt: new Date(),
     });
 
     await newDesign.save();
 
-    return NextResponse.json({ success: true, data: newDesign });
+    return NextResponse.json({ success: true, design: newDesign });
   } catch (error) {
-    console.error("[SAVE_DESIGN_API_ERROR]", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    console.error('[SAVE_DESIGN_ERROR]', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
