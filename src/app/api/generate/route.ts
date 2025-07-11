@@ -1,11 +1,10 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { checkDailyGenerationLimit } from "../../../utils/rateLimiter";
-import { generateImage } from "../../../utils/imageRouter";
-
+import { checkDailyGenerationLimit } from '@/utils/rateLimiter';
+import { generateImage } from '@/utils/imageRouter';
 export async function POST(request: Request) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
