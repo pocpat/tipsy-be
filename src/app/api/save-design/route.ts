@@ -2,11 +2,11 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import dbConnect from "../../../../lib/db";
 import Design from "../../../../models/DesignModel";
-import { checkAndIncrementTotalStorage } from "../../../../utils/rateLimiter";
+import { checkAndIncrementTotalStorage } from '@/utils/rateLimiter';
 
 export async function POST(request: Request) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
