@@ -30,7 +30,19 @@ export default clerkMiddleware(async (auth, req) => {
 
   // Allow the request to proceed if it's not a protected route
   // or if the user is authenticated.
-  return NextResponse.next();
+  const response = NextResponse.next();
+
+  // Add CORS headers for local development
+  response.headers.set('Access-Control-Allow-Origin', '*'); // Or specify your mobile app's origin, e.g., 'http://localhost:8081'
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return new NextResponse(null, { status: 200, headers: response.headers });
+  }
+
+  return response;
 });
 
 export const config = {
