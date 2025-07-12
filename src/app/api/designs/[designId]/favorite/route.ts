@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import dbConnect from '@/lib/db';
-import Design from '@/models/DesignModel';
+import dbConnect from '../../../../../../lib/db';
+import Design from '../../../../../../models/DesignModel';
 
 export async function PATCH(
   request: Request,
   { params }: { params: { designId: string } }
 ) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) {
       return new NextResponse('Unauthorized', { status: 401 });
     }

@@ -1,51 +1,30 @@
-
-
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
-// Define the routes that you want to protect.
-const isProtectedRoute = createRouteMatcher([
-  '/api/(.*)', // This protects all routes under /api
-]);
+const isProtectedRoute = createRouteMatcher(['/api/(.*)', '/admin/(.*)']);
 
-// This is now an async function
+// 'async' is here, so we check manually.
 export default clerkMiddleware(async (auth, req) => {
-  // Check if the route is a protected one.
   if (isProtectedRoute(req)) {
-    try {
-      // Await the auth() call to get the session object
-      const session = await auth();
-
-      // If there is no session.userId, the user is not authenticated.
-      // We will protect the route.
-      if (!session.userId) {
-        // You can return a custom response for API routes
-        return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-      }
-    } catch (e) {
-      // Handle cases where the token is malformed or invalid
-      return new NextResponse(JSON.stringify({ error: 'Invalid token' }), { status: 401 });
+    const { userId } = await auth(); // Await the auth() call
+    if (!userId) {
+      // Manually protect the route
+      return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
     }
   }
 
-  // Allow the request to proceed if it's not a protected route
-  // or if the user is authenticated.
   const response = NextResponse.next();
-
-  // Add CORS headers for local development
-  response.headers.set('Access-Control-Allow-Origin', '*'); // Or specify your mobile app's origin, e.g., 'http://localhost:8081'
+  // CORS Headers
+  response.headers.set('Access-Control-Allow-Origin', '*');
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  // Handle preflight requests
   if (req.method === 'OPTIONS') {
-    return new NextResponse(null, { status: 200, headers: response.headers });
+    return new NextResponse(null, { status: 200 });
   }
 
   return response;
 });
 
 export const config = {
-  // This matcher ensures the middleware runs on all relevant requests.
   matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api|trpc)(.*)'],
 };

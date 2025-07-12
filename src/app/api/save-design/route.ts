@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { put } from '@vercel/blob';
-import Design from '@/models/DesignModel';
-import { checkStorageLimit } from '@/utils/rateLimiter';
-import dbConnect from '@/lib/db';
+import Design from '../../../../models/DesignModel';
+import { checkAndIncrementTotalStorage } from '../../../utils/rateLimiter';
+import dbConnect from '../../../../lib/db';
 
 export async function POST(request: Request) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
@@ -19,9 +19,9 @@ export async function POST(request: Request) {
       return new NextResponse('Image URL is required', { status: 400 });
     }
 
-    const { limitReached, message } = await checkStorageLimit(userId);
-    if (limitReached) {
-      return new NextResponse(message, { status: 429 });
+    const canStore = checkAndIncrementTotalStorage(userId);
+    if (!canStore) {
+      return new NextResponse('Storage limit reached', { status: 429 });
     }
 
     const response = await fetch(imageUrl);
