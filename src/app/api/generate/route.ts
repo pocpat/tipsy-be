@@ -2,30 +2,38 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { checkDailyGenerationLimit } from '@/utils/rateLimiter';
 import { generateImage } from '@/utils/imageRouter';
+
 export async function POST(request: Request) {
+  console.log("[GENERATE_API] Received request");
   try {
+    console.log("[GENERATE_API] Authenticating user...");
     const { userId } = await auth();
+    console.log(`[GENERATE_API] User authenticated: ${userId}`);
 
     if (!userId) {
+      console.log("[GENERATE_API] Unauthorized: No user ID found");
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // Check daily generation limit
-    if (!checkDailyGenerationLimit(userId)) {
+    console.log("[GENERATE_API] Checking daily generation limit...");
+    const limitOk = checkDailyGenerationLimit(userId);
+    console.log(`[GENERATE_API] Daily generation limit check result: ${limitOk}`)
+    if (!limitOk) {
+      console.log("[GENERATE_API] Daily generation limit exceeded");
       return new NextResponse("Daily generation limit exceeded.", { status: 429 });
     }
 
-    const { shape, length, style, colors, colorHarmony } = await request.json();
+    console.log("[GENERATE_API] Parsing request body...");
+    const body = await request.json();
+    console.log(`[GENERATE_API] Request body parsed: ${JSON.stringify(body)}`);
+    const { shape, length, style, colors, colorHarmony } = body;
 
-    // Build the prompt for the AI model
-    //const prompt = `A photorealistic, close-up image of a manicure. The nails are ${length} and ${shape}-shaped. The style is ${style}, using a ${colorHarmony} color palette based on ${colors.join(', ')}.`;
+    const prompt = `A photorealistic, close-up image of a manicure. The nails are short and round-shaped. The style is french, using a triadic color palette based on pink color.`;
 
-        const prompt = `A photorealistic, close-up image of a manicure. The nails are short and round-shaped. The style is french, using a triadic color palette based on pink color.`;
+    console.log(`[GENERATE_API] Generating image for user ${userId} with prompt: ${prompt}`);
 
-    console.log(`Generating image for user ${userId} with prompt: ${prompt}`);
-
-    // Call the image generation service
     const imageUrls = await generateImage(prompt);
+    console.log(`[GENERATE_API] Image generation successful: ${JSON.stringify(imageUrls)}`);
 
     return NextResponse.json({ success: true, data: imageUrls });
 
