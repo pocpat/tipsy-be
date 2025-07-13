@@ -18,7 +18,9 @@ export async function POST(request: Request) {
     const { shape, length, style, colors, colorHarmony } = await request.json();
 
     // Build the prompt for the AI model
-    const prompt = `A photorealistic, close-up image of a manicure. The nails are ${length} and ${shape}-shaped. The style is ${style}, using a ${colorHarmony} color palette based on ${colors.join(', ')}.`;
+    //const prompt = `A photorealistic, close-up image of a manicure. The nails are ${length} and ${shape}-shaped. The style is ${style}, using a ${colorHarmony} color palette based on ${colors.join(', ')}.`;
+
+        const prompt = `A photorealistic, close-up image of a manicure. The nails are short and round-shaped. The style is french, using a triadic color palette based on pink color.`;
 
     console.log(`Generating image for user ${userId} with prompt: ${prompt}`);
 
