@@ -1,7 +1,5 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { clerkMiddleware } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-
-const isProtectedRoute = createRouteMatcher(['/admin(.*)', '/api(.*)']);
 
 export default clerkMiddleware((auth, req) => {
   // Handle CORS preflight requests by responding immediately.
@@ -16,10 +14,8 @@ export default clerkMiddleware((auth, req) => {
     });
   }
 
-  // Protect the admin route. If the user is not authenticated, this will redirect them.
-  if (isProtectedRoute(req)) {
-    auth.protect();
-  }
+  // Protect all routes matched by the config.matcher
+  auth().protect();
 
   // For all other requests, allow them to proceed and add CORS headers to the response.
   const response = NextResponse.next();
