@@ -15,7 +15,7 @@ export default clerkMiddleware((auth, req) => {
   }
 
   // Protect all routes matched by the config.matcher
-  auth().protect();
+  auth.protect();
 
   // For all other requests, allow them to proceed and add CORS headers to the response.
   const response = NextResponse.next();
