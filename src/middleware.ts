@@ -1,29 +1,31 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
-const isApiRoute = createRouteMatcher(['/api/(.*)']);
+const isProtectedRoute = createRouteMatcher(['/admin(.*)']);
 
 export default clerkMiddleware((auth, req) => {
-  // For API routes, add CORS headers
-  if (isApiRoute(req)) {
-    // The `auth()` object can be used here if you need to protect routes
-    // in the middleware, but for now we just let the request pass through
-    // to be handled by the API route itself.
+  // Handle CORS preflight requests by responding immediately.
+  if (req.method === 'OPTIONS') {
+    return new NextResponse(null, {
+      status: 204, // No Content
+      headers: {
+        'Access-Control-Allow-Origin': '*', // In production, lock this down to your frontend's domain
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    });
   }
 
-  // Get the default response from Clerk
-  const response = NextResponse.next();
+  // Protect the admin route. If the user is not authenticated, this will redirect them.
+  if (isProtectedRoute(req)) {
+    auth.protect();
+  }
 
-  // Add your CORS headers to the response
-  response.headers.set('Access-Control-Allow-Origin', '*'); // In production, lock this down to your frontend's domain
+  // For all other requests, allow them to proceed and add CORS headers to the response.
+  const response = NextResponse.next();
+  response.headers.set('Access-Control-Allow-Origin', '*');
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   return response;
 });
-
-export const config = {
-  // The following matcher runs middleware on all routes
-  // except static assets.
-  matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api|trpc)(.*)'],
-};
