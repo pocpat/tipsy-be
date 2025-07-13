@@ -3,7 +3,7 @@
 const dailyGenerations = new Map<string, { count: number; lastReset: number }>();
 const totalStoredDesigns = new Map<string, number>();
 
-const DAILY_LIMIT = 20;
+const DAILY_LIMIT = Number.MAX_SAFE_INTEGER; // Temporarily set to no limit for testing
 const TOTAL_STORAGE_LIMIT = 40;
 
 /**
