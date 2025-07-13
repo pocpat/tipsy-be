@@ -2,17 +2,6 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { checkDailyGenerationLimit } from '@/utils/rateLimiter';
 import { generateImage } from '@/utils/imageRouter';
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
-
-export async function OPTIONS() {
-  return NextResponse.json({}, { headers: corsHeaders });
-}
-
 export async function POST(request: Request) {
   try {
     const { userId } = await auth();
@@ -29,19 +18,19 @@ export async function POST(request: Request) {
     const { shape, length, style, colors, colorHarmony } = await request.json();
 
     // Build the prompt for the AI model
-  const prompt = `A photorealistic, close-up image of a manicure. The nails are ${length} and ${shape}-shaped. The style is ${style}, using a ${colorHarmony} color palette based on ${colors.join(', ')}.`;
+    //const prompt = `A photorealistic, close-up image of a manicure. The nails are ${length} and ${shape}-shaped. The style is ${style}, using a ${colorHarmony} color palette based on ${colors.join(', ')}.`;
 
-        //const prompt = `A photorealistic, close-up image of a manicure. The nails are short and round-shaped. The style is french, using a triadic color palette based on pink color.`;
+        const prompt = `A photorealistic, close-up image of a manicure. The nails are short and round-shaped. The style is french, using a triadic color palette based on pink color.`;
 
     console.log(`Generating image for user ${userId} with prompt: ${prompt}`);
 
     // Call the image generation service
     const imageUrls = await generateImage(prompt);
 
-    return NextResponse.json({ success: true, data: imageUrls }, { headers: corsHeaders });
+    return NextResponse.json({ success: true, data: imageUrls });
 
   } catch (error) {
     console.error("[GENERATE_API_ERROR]", error);
-    return new NextResponse("Internal Server Error", { status: 500, headers: corsHeaders });
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
