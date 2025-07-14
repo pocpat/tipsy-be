@@ -13,13 +13,13 @@ export async function POST(req: Request) {
 
   // Get the headers
   const headerPayload = headers();
-  const svix_id = (await headerPayload).get("svix-id");
-  const svix_timestamp = (await headerPayload).get("svix-timestamp");
-  const svix_signature = (await headerPayload).get("svix-signature");
+  const svix_id = headerPayload.get("svix-id");
+  const svix_timestamp = headerPayload.get("svix-timestamp");
+  const svix_signature = headerPayload.get("svix-signature");
 
   // If there are no headers, error out
   if (!svix_id || !svix_timestamp || !svix_signature) {
-    return new Response('Error occured -- no svix headers', {
+    return new Response('Error occurred -- no svix headers', {
       status: 400
     })
   }
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     }) as WebhookEvent
   } catch (err) {
     console.error('Error verifying webhook:', err);
-    return new Response('Error occured', {
+    return new Response('Error occurred', {
       status: 400
     })
   }
@@ -54,5 +54,27 @@ export async function POST(req: Request) {
   console.log(`Webhook with and ID of ${id} and type of ${eventType}`)
   console.log('Webhook body:', body)
 
-  return new Response('', { status: 200 })
+  // Handle the different event types you subscribed to
+  if (eventType === 'user.created') {
+    const { id, email_addresses, first_name, last_name } = evt.data;
+    // ---> TODO: Create a new user in your MongoDB database
+    console.log(`New user ${first_name} with ID ${id} was created.`);
+    console.log('Email addresses:', email_addresses);
+  }
+
+  if (eventType === 'user.updated') {
+    const { id, first_name, last_name } = evt.data;
+    // ---> TODO: Find user by ID in your database and update their details
+    console.log(`User ${id} was updated.`);
+    console.log('First name:', first_name);
+    console.log('Last name:', last_name);
+  }
+
+  if (eventType === 'user.deleted') {
+    const { id } = evt.data; // Clerk doesn't send the full user object on a delete event, only the ID
+    // ---> TODO: Find user by ID and delete them and all their associated data (designs, images)
+    console.log(`User ${id} was deleted.`);
+  }
+
+  return new Response('', { status: 200 });
 }
